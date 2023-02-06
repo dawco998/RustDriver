@@ -1,0 +1,77 @@
+;
+; RustDriver.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=RustDriver.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+RustDriver_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+RustDriver.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%RustDriver.DeviceDesc%=RustDriver_Device, Root\RustDriver ; TODO: edit hw-id
+
+[RustDriver_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+RustDriver.sys
+
+;-------------- Service installation
+[RustDriver_Device.NT.Services]
+AddService = RustDriver,%SPSVCINST_ASSOCSERVICE%, RustDriver_Service_Inst
+
+; -------------- RustDriver driver install sections
+[RustDriver_Service_Inst]
+DisplayName    = %RustDriver.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\RustDriver.sys
+
+;
+;--- RustDriver_Device Coinstaller installation ------
+;
+
+[RustDriver_Device.NT.CoInstallers]
+AddReg=RustDriver_Device_CoInstaller_AddReg
+CopyFiles=RustDriver_Device_CoInstaller_CopyFiles
+
+[RustDriver_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[RustDriver_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[RustDriver_Device.NT.Wdf]
+KmdfService =  RustDriver, RustDriver_wdfsect
+[RustDriver_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "RustDriver Installation Disk"
+RustDriver.DeviceDesc = "RustDriver Device"
+RustDriver.SVCDESC = "RustDriver Service"
